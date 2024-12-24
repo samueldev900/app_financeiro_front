@@ -14,9 +14,11 @@
         Sign in to your account
       </h2>
     </div>
-
+    <div>
+      <h4> {{ message }} </h4>
+    </div>
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-      <form class="space-y-6">
+      <form class="space-y-6"  @submit.prevent="login">
         <div>
           <label for="email" class="block text-sm/6 font-medium text-gray-900"
             >Email address</label
@@ -62,22 +64,19 @@
           </div>
         </div>
 
+        <div>
+          <button
+            class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Sign in
+          </button>
+        </div>
     </form>
-    <div>
-      <button
-        @click="login()"
-        class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-      >
-        Sign in
-      </button>
-    </div>
 
       <p class="mt-10 text-center text-sm/6 text-gray-500">
         Not a member?
         {{ " " }}
-        <a href="#" class="font-semibold text-indigo-600 hover:text-indigo-500"
-          >Start a 14 day free trial</a
-        >
+        <router-link to="/signup" class="font-semibold text-indigo-600 hover:text-indigo-500">Sign up for free</router-link>
       </p>
     </div>
   </div>
@@ -90,22 +89,32 @@ export default {
   data: () => ({
     email: "",
     password: "",
+    message: ""
   }),
   methods: {
     login() {
       axios
-        .post("http://127.0.0.1:8080/api/v1/login", {
+        .post("http://127.0.0.1:8000/api/v1/login", {
           email: this.email,
           password: this.password,
         })
-        .then(function (response) {
-          console.log(response);
-          localStorage.setItem('authToken', response.data.data.token);
+        .then((response) => { 
+          console.log(response.status);
+          localStorage.setItem("authToken", response.data.data.token);
+          if(response.status == 200){
+            this.$router.push("/home"); 
+          }
         })
-        .catch(function (error) {
+        .catch((error) => { 
           console.log(error);
         });
     },
   },
+  mounted() {
+    const successMessage = this.$route.query.successMessage;
+    if (successMessage) {
+        this.message = successMessage
+    }
+  }
 };
 </script>
