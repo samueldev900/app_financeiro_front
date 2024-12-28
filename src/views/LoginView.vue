@@ -15,7 +15,6 @@
         </h2>
       </div>
       <div>
-        <h4> {{ message }} </h4>
       </div>
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form class="space-y-6"  @submit.prevent="login">
@@ -26,6 +25,7 @@
             <div class="mt-2">
               <input
                 v-model="email"
+                @input="message = ''"
                 type="email"
                 name="email"
                 id="email"
@@ -50,6 +50,8 @@
                   >Forgot password?</a
                 >
               </div>
+
+
             </div>
             <div class="mt-2">
               <input
@@ -78,19 +80,29 @@
           {{ " " }}
           <router-link to="/signup" class="font-semibold text-indigo-600 hover:text-indigo-500">Sign up for free</router-link>
         </p>
+        <!-- Alertas componentes -->
+        <success-alert v-if="message != ''" :message="message"></success-alert>
+        <danger-alert v-if="message_error !=''" :message="message_error"></danger-alert>
       </div>
     </div>
   </template>
     
   <script>
   import axios from "axios";
+  import SuccessAlert from '@/components/SuccessAlert.vue';
+  import DangerAlert from '@/components/DangerAlert.vue';
   
   export default {
     data: () => ({
       email: "",
       password: "",
-      message: ""
+      message: "",
+      message_error: ""
     }),
+    components:{
+      SuccessAlert,
+      DangerAlert
+    },
     methods: {
       login() {
         axios
@@ -106,7 +118,9 @@
             }
           })
           .catch((error) => { 
-            console.log(error);
+            //console.log(error.response.data.message);
+            //mensagem de erro atribuindo a message_error
+            this.message_error = error.response.data.message
           });
       },
     },
