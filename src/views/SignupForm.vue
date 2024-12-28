@@ -99,7 +99,7 @@
               <div class="mt-2">
                 <input
                   v-model="password"
-                  @input="validate_password()"
+                  @input="validate()"
                   type="password"
                   name="password"
                   id="password"
@@ -121,7 +121,6 @@
               <div class="mt-2">
                 <input
                   v-model="confirm_password"
-                  @input="validate()"
                   type="password"
                   name="confirm_password"
                   id="confirm_password"
