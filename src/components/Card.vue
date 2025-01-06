@@ -16,7 +16,7 @@ export default {
   data: () => ({
     value: 0,
   }),
-  beforeCreate() {
+  created() {
     const appId = import.meta.env.VITE_APP_ID;
     const url = `https://openexchangerates.org/api/latest.json?app_id=${appId}`;
 
