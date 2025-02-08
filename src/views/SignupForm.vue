@@ -97,19 +97,20 @@
                 >Senha</label
               >
               <div class="mt-2">
-                <input
-                  v-model="password"
-                  @input="validate()"
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="Digite sua senha"
-                  minlength="6"
-                  required
-                  :class="
-                    qual_campo === 'password' ? error_class : active_class
-                  "
-                />
+                <div class="flex items-center justify-between" :class="qual_campo === 'password' ? error_class : active_class">
+                  <input
+                    v-model="password"
+                    :type="type_input"
+                    class="outline-none"
+                    name="password"
+                    id="password"
+                    placeholder="Digite sua senha"
+                    minlength="6"
+                    required
+                  />
+                  <i @click="mostrar_senha('show_password')" v-if="!show_password" class="bi bi-eye-fill hover:cursor-pointer"></i>
+                  <i @click="mostrar_senha('show_password')" v-if="show_password" class="bi bi-eye-slash-fill hover:cursor-pointer"></i>
+                </div>
               </div>
             </div>
             <div class="sm:col-span-3 mt-4">
@@ -119,18 +120,21 @@
                 >Confirme a Senha</label
               >
               <div class="mt-2">
-                <input
-                  v-model="confirm_password"
-                  type="password"
-                  name="confirm_password"
-                  id="confirm_password"
-                  placeholder="Confirme sua senha"
-                  minlength="6"
-                  required
-                  :class="
-                    password == confirm_password ? active_class : error_class
-                  "
-                />
+                <div class="flex items-center justify-between" :class="password == confirm_password ? active_class : error_class">
+                  <input
+                    v-model="confirm_password"
+                    :type="type_confirm"
+                    class="outline-none"
+                    name="confirm_password"
+                    id="confirm_password"
+                    placeholder="Confirme sua senha"
+                    minlength="6"
+                    required
+                    
+                  />
+                  <i @click="mostrar_senha('show_confirm_password')" v-if="!show_confirm_password" class="bi bi-eye-fill hover:cursor-pointer"></i>
+                  <i @click="mostrar_senha('show_confirm_password')" v-if="show_confirm_password" class="bi bi-eye-slash-fill hover:cursor-pointer"></i>
+                </div>
               </div>
             </div>
           </div>
@@ -161,6 +165,54 @@
           <danger-alert v-if="message != ''" :message="message"></danger-alert>
         </div>
       </div>
+      <!-- Checkboxes de consentimento -->
+      <div class="text-xs">
+        <div class="my-2">
+          <input
+            @change="check_cadastro = !check_cadastro"
+            type="checkbox"
+            name="consentimento_cadastro"
+            id="consentimento_cadastro"
+          />
+          Eu concordo com a coleta e o armazenamento dos meus dados pessoais
+          para fins de cadastro e uso da aplicação. <span class="text-red-600">*</span>
+        </div>
+
+        <div class="mb-2">
+          <input
+            @change="check_marketing = !check_marketing"
+            type="checkbox"
+            name="consentimento_marketing"
+          />
+          Eu concordo que meus dados sejam utilizados para envio de newsletters,
+          promoções e outras comunicações de marketing.
+        </div>
+        <br />
+
+        <div class="mb-2">
+          <input
+            @change="check_terceiros = !check_terceiros"
+            type="checkbox"
+            name="consentimento_terceiros"
+          />
+          Eu concordo que meus dados possam ser compartilhados com parceiros
+          comerciais para fins de marketing e publicidade. 
+        </div>
+
+        <div class="mb-2">
+          <input
+            @change="check_politica = !check_politica"
+            type="checkbox"
+            name="consentimento_politica"
+            id="consentimento_politica"
+          />
+          Eu li e concordo com a
+          <a href="/politica-de-privacidade" target="_blank"
+            >Política de Privacidade</a
+          >. <span class="text-red-600">*</span>
+        </div>
+      </div>
+      <!-- ========================== -->
       <div class="mt-6 flex items-center justify-end gap-x-6">
         <router-link to="/">
           <button type="button" class="text-sm/6 font-semibold text-gray-900">
@@ -199,18 +251,26 @@ export default {
     message: "",
     message_error: "",
     qual_campo: "",
+    check_cadastro: false,
+    check_marketing: false,
+    check_terceiros: false,
+    check_politica: false,
+    show_password: false, //responsavel pela vizualização do icone de olho no campo da senha
+    show_confirm_password: false, //responsavel pela vizualização do icone de olho no campo da confirmação senha
+    type_input: 'password', 
+    type_confirm: 'password' 
   }),
   components: {
     DangerAlert,
   },
 
   methods: {
-    signup() {
+    signup() { //verifica se os dados estao validados e envia os dados para o backend
       if (this.validate()) {
         this.send_to_backend();
       }
     },
-    validate() {
+    validate() {// Valida os campos
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const passwordRegex =
         /^(?=(.*[a-z]))(?=(.*[A-Z]))(?=(.*[\W_]))(?=(.*\d))[\w\W]{9,}$/;
@@ -240,12 +300,19 @@ export default {
           "As senhas não correspondem. Certifique-se de que ambas sejam iguais.";
         this.qual_campo = "password";
         return false;
-      } else {
+      } else if (this.check_cadastro == false || this.check_politica == false){
+        this.message =
+          "Para continuar, é necessário aceitar os termos de cadastro e a política de marketing. Por favor, marque as opções correspondentes.";
+        this.qual_campo = "consentimento_politica";
+        consentimento_politica.classList.add(this.chebox_required);
+        return false;
+      }
+      else {
         this.message = "";
         return true;
       }
     },
-    send_to_backend() {
+    send_to_backend() { // envia os dados para o backend
       axios
         .post("http://127.0.0.1:8000/api/v1/users", {
           first_name: this.first_name.trim(),
@@ -279,10 +346,34 @@ export default {
           }
         });
     },
-    clear_message() {
+    clear_message() { // limpa as mensagens
       this.message = "";
       this.qual_campo = "";
     },
+    /* checkboxes(){
+      console.log("Cadastro: " + this.check_cadastro);
+      console.log('Marketing: ' + this.check_marketing);
+      console.log('terceiros: ' + this.check_terceiros);
+      console.log('politica: ' + this.check_politica);
+    } */
+
+    mostrar_senha(nomeInput){
+      if(nomeInput == 'show_password'){
+        this.show_password = !this.show_password 
+        if(this.type_input == 'text'){
+          this.type_input = 'password'
+        }else{
+          this.type_input = 'text'
+        }
+      }else{
+        this.show_confirm_password = !this.show_confirm_password
+        if(this.type_confirm == 'text'){
+          this.type_confirm = 'password'
+        }else{
+          this.type_confirm = 'text'
+        }
+      }
+    }
   },
   computed: {
     isLongEnough() {
@@ -303,4 +394,5 @@ export default {
   },
 };
 </script>
+
   
